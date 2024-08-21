@@ -112,7 +112,10 @@ export const deleteSession = async (req, res) => {
 export const getUserSessions = async (req, res) => {
   try {
     // 查找屬於當前用戶的所有場次，並填充場地和用戶信息
-    const sessions = await Session.find({ userId: req.user._id }).populate('v_id').populate('userId')
+    const sessions = await Session.find({ userId: req.user._id })
+      .populate('v_id')
+      .populate('userId')
+      .sort({ date: 1 }) // 按日期升序排序
     res.status(StatusCodes.OK).json({
       success: true,
       message: '',

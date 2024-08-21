@@ -68,9 +68,7 @@ const schema = new Schema({
     maxlength: [10, '姓名最多 10 個字']
   },
   nickname: {
-    type: String,
-    minlength: [2, '暱稱最少 2 個字'],
-    maxlength: [10, '暱稱最多 10 個字']
+    type: String
   },
   avatar: {
     type: String,
