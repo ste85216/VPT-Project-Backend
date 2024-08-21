@@ -66,8 +66,8 @@ const sessionSchema = new Schema({
     type: Date,
     default: function () {
       const expirationDate = new Date(this.date)
-      expirationDate.setDate(expirationDate.getDate() + 1)
-      expirationDate.setHours(0, 0, 0, 0)
+      expirationDate.setUTCDate(expirationDate.getUTCDate() + 1) // 加一天
+      expirationDate.setUTCHours(0, 0, 0, 0) // 設置為UTC的午夜
       return expirationDate
     },
     index: { expires: '0s' }
