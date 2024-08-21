@@ -1,4 +1,5 @@
 import { Schema, model, ObjectId } from 'mongoose'
+import Enrollment from './enrollment.js'
 
 const sessionSchema = new Schema({
   v_id: {
@@ -60,7 +61,25 @@ const sessionSchema = new Schema({
   },
   note: {
     type: String
+  },
+  expiresAt: {
+    type: Date,
+    default: function () {
+      const expirationDate = new Date(this.date)
+      expirationDate.setDate(expirationDate.getDate() + 1)
+      expirationDate.setHours(0, 0, 0, 0)
+      return expirationDate
+    },
+    index: { expires: '0s' }
   }
 })
+
+// 使用 pre('deleteOne') 代替 pre('remove')
+sessionSchema.pre('deleteOne', { document: true, query: false }, async function () {
+  await Enrollment.deleteMany({ s_id: this._id })
+})
+
+// 創建 TTL 索引
+sessionSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 })
 
 export default model('sessions', sessionSchema)
