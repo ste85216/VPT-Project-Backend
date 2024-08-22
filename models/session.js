@@ -74,6 +74,26 @@ const sessionSchema = new Schema({
   }
 })
 
+sessionSchema.pre('save', async function (next) {
+  if (this.isModified('date')) {
+    const expirationDate = new Date(this.date)
+    expirationDate.setUTCDate(expirationDate.getUTCDate() + 1)
+    expirationDate.setUTCHours(0, 0, 0, 0)
+    this.expiresAt = expirationDate
+
+    // 更新相關的 Enrollments
+    try {
+      await Enrollment.updateMany(
+        { s_id: this._id },
+        { expiresAt: this.expiresAt }
+      )
+    } catch (error) {
+      console.error('更新 Enrollments 失敗:', error)
+    }
+  }
+  next()
+})
+
 // 使用 pre('deleteOne') 代替 pre('remove')
 sessionSchema.pre('deleteOne', { document: true, query: false }, async function () {
   await Enrollment.deleteMany({ s_id: this._id })

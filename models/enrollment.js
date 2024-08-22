@@ -25,6 +25,10 @@ const schema = new Schema({
     type: Number,
     default: 0,
     min: [0, '不限性別人數不能為負數']
+  },
+  expiresAt: {
+    type: Date,
+    index: { expires: '0s' }
   }
 }, {
   timestamps: true
@@ -38,5 +42,26 @@ schema.pre('save', function (next) {
     next()
   }
 })
+
+// 動態設置 expiresAt
+schema.pre('save', async function (next) {
+  if (this.isNew || this.isModified('s_id')) {
+    try {
+      const session = await this.model('sessions').findById(this.s_id)
+      if (session) {
+        const expirationDate = new Date(session.date)
+        expirationDate.setUTCDate(expirationDate.getUTCDate() + 1)
+        expirationDate.setUTCHours(0, 0, 0, 0)
+        this.expiresAt = expirationDate
+      }
+    } catch (error) {
+      return next(error)
+    }
+  }
+  next()
+})
+
+// 創建 TTL 索引
+schema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 })
 
 export default model('enrollments', schema)
