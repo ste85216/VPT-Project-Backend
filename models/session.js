@@ -62,6 +62,7 @@ const sessionSchema = new Schema({
   note: {
     type: String
   },
+  // 過期時間，用於自動刪除過期的 session
   expiresAt: {
     type: Date,
     default: function () {
@@ -70,18 +71,20 @@ const sessionSchema = new Schema({
       expirationDate.setUTCHours(0, 0, 0, 0) // 設置為UTC的午夜
       return expirationDate
     },
-    index: { expires: '0s' }
+    index: { expires: '0s' } // 設置 TTL 索引
   }
 })
 
+// 保存前的中間件，用於更新 expiresAt 和相關的 Enrollments
 sessionSchema.pre('save', async function (next) {
   if (this.isModified('date')) {
+    // 如果日期被修改，重新計算 expiresAt
     const expirationDate = new Date(this.date)
     expirationDate.setUTCDate(expirationDate.getUTCDate() + 1)
     expirationDate.setUTCHours(0, 0, 0, 0)
     this.expiresAt = expirationDate
 
-    // 更新相關的 Enrollments
+    // 更新相關的 Enrollments 的 expiresAt
     try {
       await Enrollment.updateMany(
         { s_id: this._id },
@@ -94,12 +97,13 @@ sessionSchema.pre('save', async function (next) {
   next()
 })
 
-// 使用 pre('deleteOne') 代替 pre('remove')
+// 刪除 session 前的中間件，用於刪除相關的 Enrollments
 sessionSchema.pre('deleteOne', { document: true, query: false }, async function () {
   await Enrollment.deleteMany({ s_id: this._id })
 })
 
-// 創建 TTL 索引
+// 創建 TTL 索引，用於自動刪除過期的 documents
 sessionSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 })
 
+// 導出 Session 模型
 export default model('sessions', sessionSchema)
