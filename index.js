@@ -18,7 +18,7 @@ const app = express()
 
 app.use(rateLimit({ // ㄑ限制請求次數
   windowMs: 60 * 1000 * 15, // 15 minutes 1000ms = 1s
-  max: 100, // 最多100次請求
+  max: 2000, // 最多100次請求
   standardHeaders: 'draft-7',
   legacyHeaders: false,
   statusCode: StatusCodes.TOO_MANY_REQUESTS,
