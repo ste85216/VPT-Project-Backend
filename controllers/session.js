@@ -187,8 +187,6 @@ export const getAllSessions = async (req, res) => {
         totalPages
       }
     })
-
-    console.log('Filter:', JSON.stringify(filter, null, 2))
   } catch (error) {
     console.error('Get all sessions error:', error)
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
