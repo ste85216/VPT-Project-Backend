@@ -24,20 +24,20 @@ import './passport/passport.js'
 const app = express()
 
 // 設置速率限制中間件
-app.use(rateLimit({
-  windowMs: 60 * 1000 * 15, // 15 分鐘
-  max: 2000, // 最多 2000 次請求
-  standardHeaders: 'draft-7',
-  legacyHeaders: false,
-  statusCode: StatusCodes.TOO_MANY_REQUESTS,
-  message: '請求次數過多，請稍後再試',
-  handler (req, res, next, options) {
-    res.status(options.statusCode).json({
-      success: false,
-      message: options.message
-    })
-  }
-}))
+// app.use(rateLimit({
+//   windowMs: 60 * 1000 * 15, // 15 分鐘
+//   max: 100, // 最多 100 次請求
+//   standardHeaders: 'draft-7',
+//   legacyHeaders: false,
+//   statusCode: StatusCodes.TOO_MANY_REQUESTS,
+//   message: '請求次數過多，請稍後再試',
+//   handler (req, res, next, options) {
+//     res.status(options.statusCode).json({
+//       success: false,
+//       message: options.message
+//     })
+//   }
+// }))
 
 // 設置 CORS 中間件 跨域資源共享
 app.use(cors({
