@@ -23,9 +23,6 @@ import './passport/passport.js'
 // 創建 Express 應用
 const app = express()
 
-// 設置 trust proxy
-app.set('trust proxy', false)
-
 // 設置速率限制中間件
 app.use(rateLimit({
   windowMs: 60 * 1000 * 15, // 15 分鐘
