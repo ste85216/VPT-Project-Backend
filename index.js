@@ -24,7 +24,7 @@ import './passport/passport.js'
 const app = express()
 
 // 設置 trust proxy
-app.set('trust proxy', true)
+app.set('trust proxy', false)
 
 // 設置速率限制中間件
 app.use(rateLimit({
