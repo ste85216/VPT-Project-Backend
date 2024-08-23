@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken'
 import validator from 'validator'
 import Sequence from '../models/sequence.js'
 
+// 生成下一個序列號的輔助函數
 const getNextSequence = async (name) => {
   const sequence = await Sequence.findOneAndUpdate(
     { name },
@@ -14,10 +15,12 @@ const getNextSequence = async (name) => {
   return sequence.value
 }
 
+// 用戶註冊
 export const create = async (req, res) => {
   try {
     let userId
     if (req.body.role !== 1) {
+      // 如果不是管理員，生成用戶ID
       const sequenceValue = await getNextSequence('user')
       userId = `A${String(sequenceValue).padStart(6, '0')}`
     }
@@ -52,6 +55,7 @@ export const create = async (req, res) => {
   }
 }
 
+// 用戶登入
 export const login = async (req, res) => {
   try {
     const token = jwt.sign({ _id: req.user._id }, process.env.JWT_SECRET, { expiresIn: '7 days' })
@@ -75,6 +79,7 @@ export const login = async (req, res) => {
   }
 }
 
+// 延長用戶登入token
 export const extend = async (req, res) => {
   try {
     const idx = req.user.tokens.findIndex(token => token === req.token)
@@ -94,6 +99,7 @@ export const extend = async (req, res) => {
   }
 }
 
+// 獲取用戶個人資料
 export const profile = (req, res) => {
   try {
     res.status(StatusCodes.OK).json({
@@ -102,7 +108,7 @@ export const profile = (req, res) => {
       result: {
         account: req.user.account,
         role: req.user.role,
-        avatar: req.user.avatar, // 確保返回 avatar
+        avatar: req.user.avatar,
         cart: req.user.cartQuantity,
         name: req.user.name,
         userId: req.user.userId,
@@ -121,6 +127,7 @@ export const profile = (req, res) => {
   }
 }
 
+// 用戶登出
 export const logout = async (req, res) => {
   try {
     req.user.tokens = req.user.tokens.filter(token => token !== req.token)
@@ -137,6 +144,7 @@ export const logout = async (req, res) => {
   }
 }
 
+// 獲取所有用戶（管理員功能）
 export const getAll = async (req, res) => {
   try {
     const sortBy = req.query.sortBy || 'createdAt'
@@ -149,7 +157,7 @@ export const getAll = async (req, res) => {
     const data = await User
       .find({
         $or: [
-          { role, account: regex }, // 這裡也要注意
+          { role, account: regex },
           { role, name: regex },
           { role, nickname: regex },
           { role, email: regex },
@@ -160,7 +168,7 @@ export const getAll = async (req, res) => {
       .skip((page - 1) * itemsPerPage)
       .limit(itemsPerPage)
     const memberTotal = await User.countDocuments({ role: 0 })
-    const adminTotal = await User.countDocuments({ role: 1 }) // 有篩選身分的資料筆數 跟product不一樣 這邊仔細觀察
+    const adminTotal = await User.countDocuments({ role: 1 })
     res.status(StatusCodes.OK).json({
       success: true,
       message: '',
@@ -177,6 +185,7 @@ export const getAll = async (req, res) => {
   }
 }
 
+// 編輯用戶資料（管理員功能）
 export const edit = async (req, res) => {
   try {
     if (!validator.isMongoId(req.params.id)) throw new Error('ID')
@@ -214,6 +223,7 @@ export const edit = async (req, res) => {
   }
 }
 
+// 獲取用戶列表（可能用於搜索功能）
 export const get = async (req, res) => {
   try {
     const sortBy = req.query.sortBy || 'createdAt'
@@ -250,6 +260,7 @@ export const get = async (req, res) => {
   }
 }
 
+// 獲取特定用戶資料
 export const getId = async (req, res) => {
   try {
     if (!validator.isMongoId(req.params.id)) throw new Error('ID')
@@ -281,6 +292,7 @@ export const getId = async (req, res) => {
   }
 }
 
+// 刪除用戶（管理員功能）
 export const remove = async (req, res) => {
   try {
     if (!validator.isMongoId(req.params.id)) throw new Error('ID')
@@ -311,6 +323,7 @@ export const remove = async (req, res) => {
   }
 }
 
+// 編輯購物車
 export const editCart = async (req, res) => {
   try {
     if (!validator.isMongoId(req.body.p_id)) throw new Error('ID')
@@ -345,7 +358,7 @@ export const editCart = async (req, res) => {
     res.status(StatusCodes.OK).json({
       success: true,
       message: '商品以加入購物車',
-      result: { cart: req.user.cart } // 修改：返回整個購物車數據結構
+      result: { cart: req.user.cart }
     })
   } catch (error) {
     if (error.name === 'CastError' || error.message === 'ID') {
@@ -379,6 +392,7 @@ export const editCart = async (req, res) => {
   }
 }
 
+// 獲取購物車內容
 export const getCart = async (req, res) => {
   try {
     const result = await User.findById(req.user._id, 'cart').populate('cart.p_id')
@@ -395,7 +409,7 @@ export const getCart = async (req, res) => {
   }
 }
 
-// controllers/user.js
+// 更新用戶頭像
 export const updateAvatar = async (req, res) => {
   try {
     if (!req.file || !req.file.path) {
@@ -429,6 +443,7 @@ export const updateAvatar = async (req, res) => {
   }
 }
 
+// 更新用戶個人資料
 export const updateUserProfile = async (req, res) => {
   try {
     const userId = req.user._id

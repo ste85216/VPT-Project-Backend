@@ -4,7 +4,7 @@ import mongoose from 'mongoose'
 import cors from 'cors'
 import { StatusCodes } from 'http-status-codes'
 import mongoSanitize from 'express-mongo-sanitize'
-import rateLimit from 'express-rate-limit'
+// import rateLimit from 'express-rate-limit'
 
 // 導入路由
 import routeUser from './routes/user.js'
