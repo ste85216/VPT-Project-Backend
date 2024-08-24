@@ -3,6 +3,7 @@ import Product from '../models/product.js'
 import { StatusCodes } from 'http-status-codes'
 import jwt from 'jsonwebtoken'
 import validator from 'validator'
+import bcrypt from 'bcrypt'
 import Sequence from '../models/sequence.js'
 
 // 生成下一個序列號的輔助函數
@@ -58,6 +59,23 @@ export const create = async (req, res) => {
 // 用戶登入
 export const login = async (req, res) => {
   try {
+    // 將輸入的帳號轉換為小寫
+    const account = req.body.account.toLowerCase()
+    const user = await User.findOne({ account })
+    if (!user) {
+      return res.status(StatusCodes.UNAUTHORIZED).json({
+        success: false,
+        message: '帳號或密碼錯誤'
+      })
+    }
+
+    const isMatch = await bcrypt.compare(req.body.password, user.password)
+    if (!isMatch) {
+      return res.status(StatusCodes.UNAUTHORIZED).json({
+        success: false,
+        message: '帳號或密碼錯誤'
+      })
+    }
     const token = jwt.sign({ _id: req.user._id }, process.env.JWT_SECRET, { expiresIn: '7 days' })
     req.user.tokens.push(token)
     await req.user.save()
@@ -190,13 +208,22 @@ export const edit = async (req, res) => {
   try {
     if (!validator.isMongoId(req.params.id)) throw new Error('ID')
 
-    await User.findByIdAndUpdate(req.params.id, req.body, { runValidators: true }).orFail(new Error('NOT FOUND'))
+    const updateData = { ...req.body }
+    delete updateData.password // 確保不會更新密碼
+
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      { new: true, runValidators: true }
+    ).orFail(new Error('NOT FOUND'))
 
     res.status(StatusCodes.OK).json({
       success: true,
-      message: ''
+      message: '用戶資料更新成功',
+      result: user
     })
   } catch (error) {
+    console.error(error) // 記錄錯誤
     if (error.name === 'CastError' || error.message === 'ID') {
       res.status(StatusCodes.BAD_REQUEST).json({
         success: false,

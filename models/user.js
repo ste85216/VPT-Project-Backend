@@ -37,7 +37,8 @@ const schema = new Schema({
     validate: {
       validator: validator.isAlphanumeric,
       message: '帳號只能是英數字'
-    }
+    },
+    set: v => v.toLowerCase()
   },
   password: {
     type: String,
