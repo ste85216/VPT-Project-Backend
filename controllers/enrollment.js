@@ -206,6 +206,7 @@ export const get = async (req, res) => {
         populate: { path: 'v_id' }
       })
       .populate('userId')
+      .sort({ 's_id.date': 1, 's_id.time': 1 }) // 修改這行：日期升序，時間升序
 
     // 過濾掉 s_id 為 null 的報名
     const validEnrollments = enrollments.filter(enrollment => enrollment.s_id != null)
