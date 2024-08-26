@@ -475,6 +475,9 @@ export const updateUserProfile = async (req, res) => {
   try {
     const userId = req.user._id
     const updatedData = req.body
+
+    console.log('Received nickname:', updatedData.nickname)
+
     const user = await User.findByIdAndUpdate(userId, updatedData, { new: true })
     res.status(StatusCodes.OK).json({
       success: true,
